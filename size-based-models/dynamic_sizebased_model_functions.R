@@ -607,7 +607,7 @@ sizeparam<-function(equilibrium=F, dx=0.1,xmin=-12,xmax=6,xmin.consumer.u=-7,xmi
   
   param$q0=2.0      # Mean log10 predator prey mass ratio  100:1.
   param$sd.q=1.0    # 0.6 to 1.0 for lognormal prey preference function. 
-  param$A.u=64    # originally 640, but using Quest-fish default of 64 hourly rate volume searched constant m3.yr-1 for fish. need to check this value, its quite large.
+  param$A.u=64*3    # originally 640, but using Quest-fish default of 64 hourly rate volume searched constant m3.yr-1 for fish. need to check this value, its quite large.
   param$A.v=param$A.u*0.1    # hourly rate volume filtered constant m3.yr-1 for benthos. this value yields believable growth curve.
   # approximatelty 10 times less than A.u
   param$alpha.u=0.82  #exponent for metabolic requirements plus swimming for predators(Ware et al 1978)

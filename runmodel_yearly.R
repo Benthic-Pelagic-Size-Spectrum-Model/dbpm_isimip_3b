@@ -15,9 +15,9 @@ rungridsep <- function(igrid
                        ,input_files_location
                        ,output_files_location) {
   
-  # CN trial
+  # # CN trial
   # # where is igrid specified? in the loop that calls this function
-  # igrid <- 1
+  # igrid <- 28980
   # gcm = curr_esm
   # protocol = curr_scen
   # output = "partial"

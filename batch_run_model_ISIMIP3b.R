@@ -5,7 +5,7 @@
 
 #### STEP 3: RUN THE MODEL
 # Set to the base folder for the DBPM runs
-setwd("/data/home/camillan/dbpm")
+# setwd("/data/home/camillan/dbpm")
 
 rm(list=ls())
 
@@ -16,22 +16,10 @@ library(zoo)
 library(parallel)
 
 # ISIMIP3b runs 
-# esms <- c("GFDL-ESM4", "IPSL-CM6A-LR")
-# scenario <- c("picontrol", "historical", "ssp126", "ssp585")
-
-# ISIMIP3a runs 
-esms <- c("obsclim", "ctrlclim", "spinup")
-scenario <- c("1deg") #, "0.25deg")
+esms <- c("GFDL-ESM4", "IPSL-CM6A-LR")
+scenario <- c("picontrol", "historical", "ssp126", "ssp585")
 
 source('runmodel_yearly.R') 
-
-# igrid <-1
-# readRDS("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/GFDL-ESM4/historical/grid_1_GFDL-ESM4_historical.rds") # try reading file 
-# gcm = curr_esm 
-# protocol = curr_scen
-# output = "partial"
-# input_files_location = input_loc 
-# output_files_location = output_loc
 
 ### protocols requiring spin up ----
 
@@ -43,14 +31,14 @@ source('runmodel_yearly.R')
 
 # for(i in 1:length(esms)){ # Loop over esms
   
-  i = 3 # ISIMIP3a - scenario - spinup 1deg started on 20 sept at 5pm. After 2.5 days (23 sept 9am) only 179 files over more than 41000! 
+  i = 2 
   curr_esm <- esms[i]
   
-  # load(list.files(path=paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, '/',  sep = ""), pattern = "*depth*", full.names = TRUE)) # Load esm depth file
+  load(list.files(path=paste("/rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, '/',  sep = ""), pattern = "*depth*", full.names = TRUE)) # Load esm depth file
 
   # for(j in 1:(length(scenario)-2)){ # Loop over scenario
   
-    j = 1
+    j = 2
 
     # historical saved weekly outputs + spin up = 4.9T, 4 days to run (but on 25 cores)
     # picontrol saved montly outputs = 340G, 2.5 days to run on 45 cores  
@@ -63,35 +51,37 @@ source('runmodel_yearly.R')
     # historical IPSL: montly outputs saving growth also, ~ 2.2 days
     # historical + picontrol GFDL: montly outputs saving growth also, ~ 7 not sure why so long (picontrol has a time dimention of 3012, hisitircal of 1980). 
     
+    # new runs with higher search vol to fix steep slope 
+    # historical started 10pm 11/04/2023 on 30 cores 
+    
     curr_scen <- scenario[j]
     
-    # ISMIP3a - depth loading moved here as only one esm in reality
-    # CN load depth file - one for all scenarios (obsclim and ctrlclim and therefore spinup)
-    load(list.files(path=paste("/rd/gem/private/fishmip_inputs/ISIMIP3a/processed_forcings/",
-                               "obsclim", 
-                               '/', 
-                               curr_scen, 
-                               sep = ""),
-                    pattern = "*deptho*", full.names = TRUE))
+    # # ISMIP3a - depth loading moved here as only one esm in reality
+    # # CN load depth file - one for all scenarios (obsclim and ctrlclim and therefore spinup)
+    # load(list.files(path=paste("/rd/gem/private/fishmip_inputs/ISIMIP3a/processed_forcings/",
+    #                            "obsclim", 
+    #                            '/', 
+    #                            curr_scen, 
+    #                            sep = ""),
+    #                 pattern = "*deptho*", full.names = TRUE))
     
     
-    # input_loc <- paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, "/", curr_scen, "/", sep = "")
-    # output_loc <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/", curr_esm, "/", curr_scen, "/", sep = "") 
+    input_loc <- paste("/rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, "/", curr_scen, "/", sep = "")
+    # output_loc <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/", curr_esm, "/", curr_scen, "/", sep = "")
     
-    # ISMIP3a 
-    input_loc <- paste("/rd/gem/private/fishmip_inputs/ISIMIP3a/processed_forcings/", curr_esm, "/", curr_scen, "/", "gridcell/",sep = "")
-    output_loc <- paste("/rd/gem/private/fishmip_outputs/ISIMIP3a/", curr_esm, "/", curr_scen, "/", sep = "")
-    
-    
+    # rerun model changing search volume to fix the slope 
+    # WARNING - for this test we change param$A.u=64 in line 610 of dynamic_sizebased_model_function.R 
+    output_loc <- paste("/rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/", curr_esm, "/", curr_scen, "/", sep = "")
+      
     # set up cluster
-    numcores= 45 # gem48 has 48 cpu 
+    numcores= detectCores()-2 
     
     cl <- makeForkCluster(getOption("cl.cores", numcores))
     
     # grids to read in are sequential for the depth file
     grids<-1:dim(depth)[1]
     # trial 
-    # grids<-1:10
+    # grids<-c(28980, 34856) # run 1 grid cell with steep slope and 1 with ok slope 
     
     ptm=proc.time()
     options(warn=-1)
@@ -101,7 +91,7 @@ source('runmodel_yearly.R')
     
     print((proc.time()-ptm)/60.0)
     
-    stopCluster(cl)
+    stopCluster(cl) 
   # }
 
 # }
