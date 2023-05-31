@@ -6,7 +6,7 @@ rm(list=ls())
 #install.packages("RNetCDF")
 
 library('RNetCDF')
-setwd("/data/home/camillan/dbpm")
+# setwd("/data/home/camillan/dbpm")
 
 # CN work with one earth model at the time: 
 # load(file ="/../../rd/gem/private/fishmip_inputs/ISIMIP3b/IPSL-CM6A-LR/IPSL-CM6A-LR_depth.RData") # load depth data
@@ -65,9 +65,13 @@ load(file)
 grids<-1:dim(depth)[1] 
 
 # locations of inputs, outputs from models and where to save netcdf 
+# consider version_02 with different search volumes for size-spectrum paper 
+# NOTE! FOR NOW running only tcb log10 output so skip all the other and only historical 
 input_loc <- paste0("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm,"/")
-output_loc <- paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/",curr_esm,"/")
-save_loc <- paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/",curr_esm,"/netcdf/")
+output_loc <- paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/",curr_esm,"/")
+save_loc <- paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/",curr_esm,"/netcdf/")
+
+
 
 # CN variables to make 
 # vars2make <- c('U', 'V', 'GGU','GGV') # 'W','dx','x') # if not aggregated   
@@ -115,15 +119,16 @@ yearRange<- c('1850_2100', '1850_2014', '2015_2100', '2015_2100')
 
 #### option 3 ----
 
-result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/",curr_esm,"/picontrol/dbpm_output_all_1_picontrol.rds"))
+result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/",curr_esm,"/picontrol/dbpm_output_all_1_picontrol.rds"))
 isave_p<-1:dim(result_set$U)[2] 
-result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/",curr_esm,"/historical/dbpm_output_all_1_historical.rds"))
+result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/",curr_esm,"/historical/dbpm_output_all_1_historical.rds"))
 isave_h<-1:dim(result_set$U)[2] 
-result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/",curr_esm,"/ssp126/dbpm_output_all_1_ssp126.rds"))
+result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/",curr_esm,"/ssp126/dbpm_output_all_1_ssp126.rds"))
 isave_126<-1:dim(result_set$U)[2] 
-result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/",curr_esm,"/ssp585/dbpm_output_all_1_ssp585.rds"))
+result_set <- readRDS(paste0("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/",curr_esm,"/ssp585/dbpm_output_all_1_ssp585.rds"))
 isave_585<-1:dim(result_set$U)[2] 
 
+## NOTE - these are not corerct as I only run historical for now so they all relate to historical 
 isave<- list(isave_p, isave_h, isave_126, isave_585) # picontrol needs to be added instead of historical if picontrol is run 
 
 # other parameters to cut and aggregate outputs 
@@ -178,6 +183,9 @@ source("makenetcdfs_func.R")
 # }
 
 #### for aggregated outputs ---- 
+
+### NOTE CN - skip this for now as I am only focusing on tcblog10 for size-spectrum papaer 
+
 
 dbpm.variables<-data.frame(name = vars2make, 
                            description = c("Total Consumer Biomass Density",
@@ -242,10 +250,11 @@ vars2make <- c('tcb', 'tpb', 'bp30cm', 'bp30to90cm',"bp90cm",'tdb','bd30cm', 'bd
 
 #### for aggregated size-spectrum outputs ----
 
-
+## NOTE start re-running from here 
+  
 # for(j in 1:length(prots)){
   
-  j = 1
+  j = 2
   # picontrol error then function stopped  
   # Error in `[<-`(`*tmp*`, inputs$depth$lon, inputs$depth$lat, size[2], ,  : 
   #                  subscript out of bounds
