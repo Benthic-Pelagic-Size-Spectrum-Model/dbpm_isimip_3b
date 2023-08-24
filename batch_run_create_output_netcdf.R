@@ -254,7 +254,7 @@ vars2make <- c('tcb', 'tpb', 'bp30cm', 'bp30to90cm',"bp90cm",'tdb','bd30cm', 'bd
   
 # for(j in 1:length(prots)){
   
-  j = 2
+  j = 4
   # picontrol error then function stopped  
   # Error in `[<-`(`*tmp*`, inputs$depth$lon, inputs$depth$lat, size[2], ,  : 
   #                  subscript out of bounds

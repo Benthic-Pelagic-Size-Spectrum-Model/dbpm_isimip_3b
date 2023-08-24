@@ -69,7 +69,7 @@ source('runmodel_yearly.R')
     input_loc <- paste("/rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, "/", curr_scen, "/", sep = "")
     # output_loc <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/", curr_esm, "/", curr_scen, "/", sep = "")
     
-    # rerun model changing search volume to fix the slope 
+    # rerun model changing search volume to fix the slope - version_02
     # WARNING - for this test we change param$A.u=64 in line 610 of dynamic_sizebased_model_function.R 
     output_loc <- paste("/rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/", curr_esm, "/", curr_scen, "/", sep = "")
       
@@ -96,61 +96,83 @@ source('runmodel_yearly.R')
 
 # }
     
-# ### projections protocols ssp ----
-#     
-#  for(i in 1:length(esms)){ # Loop over esms
-#   
-#   i = 1  
-#   curr_esm <- esms[i]
-#   
-#   load(list.files(path=paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, '/',  sep = ""), pattern = "*depth*", full.names = TRUE)) # Load esm depth file
-#   
-#   for(j in 3:length(scenario)){ # Loop over scenario
-#     
-#     # ssp126 saved weekly outputs starting from last historical week = 13 h to run; 117G  
-#     # ssp585 saved weekly outputs starting from last historical week = 12 h to run; 117G 
-#     
-#     # runs without temperature effect on senescence - see above. both ssp/s
-#     # saved weekly outputs starting from last historical week = 25 h to run together
-#     
-#     # run without temp effect on senescence and on detritus other mortalities 
-#     # strange error with GFDL: I rerun teh code and only 2 grid cells are now not run , but the error still remains. If run one by one grid cell, it all seems OK
-#     # Error in checkForRemoteErrors(val) : 
-#     #   15 nodes produced errors; first error: invalid 'description' argument
-#     j = 4 
-#     
-#     curr_scen <- scenario[j]
-#     
-#     input_loc <- paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, "/", curr_scen, sep = "")
-#     output_loc <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/", curr_esm, "/", curr_scen, sep = "") 
-#     output_loc_hist <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/", curr_esm, '/historical', sep = "")
-#     input_loc_hist <- paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, '/historical', sep = "")
-#     
-#     # set up cluster
-#     numcores= 45 # 48 cpu 
-#     
-#     cl <- makeForkCluster(getOption("cl.cores", numcores))
-#     
-#     # grids to read in are sequential for the depth file
-#     grids<-1:dim(depth)[1]
-#     # not for second run 
-#     # grids<-grids[grids!=21747] # this is the only grid from the historical run with greater size dimentions, meaning that result_set$notrun == TRUE
-#     # see why this grid could be problematic below 'check time dimention of outputs in historical'
-#     
-#     ptm=proc.time()
-#     options(warn=-1)
-#     
-#     parallel::clusterApply(cl,x=grids,fun=rungridsep_ssp, gcm = curr_esm, protocol = curr_scen, output = "partial",  
-#                            input_files_location = input_loc, output_files_location = output_loc, 
-#                            input_historical_location = input_loc_hist, output_historical_location = output_loc_hist)
-#     
-#     print((proc.time()-ptm)/60.0)
-#   
-#     stopCluster(cl)
-#    }
-# }
+### projections protocols ssp ----
 
-# ### ISMIP2b - explore effect of senescence and fix 'bug' which increases biomass ----
+ for(i in 1:length(esms)){ # Loop over esms
+
+  i = 2
+  curr_esm <- esms[i]
+
+  load(list.files(path=paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, '/',  sep = ""), pattern = "*depth*", full.names = TRUE)) # Load esm depth file
+
+  for(j in 3:length(scenario)){ # Loop over scenario
+
+    # ssp126 saved weekly outputs starting from last historical week = 13 h to run; 117G
+    # ssp585 saved weekly outputs starting from last historical week = 12 h to run; 117G
+
+    # runs without temperature effect on senescence - see above. both ssp/s
+    # saved weekly outputs starting from last historical week = 25 h to run together
+
+    # run without temp effect on senescence and on detritus other mortalities
+    # strange error with GFDL: I rerun teh code and only 2 grid cells are now not run , but the error still remains. If run one by one grid cell, it all seems OK
+    # Error in checkForRemoteErrors(val) :
+    #   15 nodes produced errors; first error: invalid 'description' argument
+    j = 4
+
+    curr_scen <- scenario[j]
+
+    input_loc <- paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, "/", curr_scen, sep = "")
+    # output_loc <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/", curr_esm, "/", curr_scen, sep = "")
+    # output_loc_hist <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/", curr_esm, '/historical', sep = "")
+    
+    # rerun model changing search volume to fix the slope - version_02
+    # WARNING - for this test we change param$A.u=64 in line 610 of dynamic_sizebased_model_function.R 
+    output_loc_hist <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/", curr_esm, '/historical', sep = "")
+    # WARNING - output_loc needs / as in loop above. The others do not because inside the function we use (path) - which adds the / . whether there is / or // (above loop) is the same. 
+    # not sure how this worked when we run version_01 but files do have the right name which otherwise would have been e.g. ssp585dbpm_output_all_1000_ssp585.rds and saved outside the ssp585 folder... 
+    # the name for historical runs above was OK
+    # also checked creation data (use stat) and they are OK (final outputs are from the correct experiments - not with temp on senescence mortality)
+    # necdf creation date /rd/gem/private/fishmip_outputs/ISIMIP3b_withTempOnSenescenceOnOmDetritus/IPSL-CM6A-LR/netcdf/historical
+    # 2020-09-13
+    # necdf creation date /rd/gem/private/fishmip_outputs/ISIMIP3b_withTempOnOmDetritus/IPSL-CM6A-LR/netcdf_beforeMatthias/historical
+    # 2020-10-13
+    # /rd/gem/private/fishmip_outputs/ISIMIP3b/IPSL-CM6A-LR/netcdf/historical
+    # 2021-09-08
+    # /rd/gem/private/fishmip_outputs/ISIMIP3b/IPSL-CM6A-LR/netcdf_minus7/historical
+    # 2021-04-12
+    # rds file creation 
+    # /rd/gem/private/fishmip_outputs/ISIMIP3b/IPSL-CM6A-LR/historical
+    # 2021-02-03
+    
+    output_loc <- paste("/../../rd/gem/private/fishmip_outputs/ISIMIP3b/version_02/", curr_esm, "/", curr_scen, "/", sep = "") 
+    # WARNING - this is not used inside the function... can delete as argument etc. 
+    input_loc_hist <- paste("/../../rd/gem/private/fishmip_inputs/ISIMIP3b/", curr_esm, '/historical', sep = "")
+
+    # set up cluster
+    numcores= 45 # 48 cpu
+
+    cl <- makeForkCluster(getOption("cl.cores", numcores))
+
+    # grids to read in are sequential for the depth file
+    grids<-1:dim(depth)[1]
+    # not for second run
+    # grids<-grids[grids!=21747] # this is the only grid from the historical run with greater size dimentions, meaning that result_set$notrun == TRUE
+    # see why this grid could be problematic below 'check time dimention of outputs in historical'
+
+    ptm=proc.time()
+    options(warn=-1)
+
+    parallel::clusterApply(cl,x=grids,fun=rungridsep_ssp, gcm = curr_esm, protocol = curr_scen, output = "partial",
+                           input_files_location = input_loc, output_files_location = output_loc,
+                           input_historical_location = input_loc_hist, output_historical_location = output_loc_hist)
+
+    print((proc.time()-ptm)/60.0)
+
+    stopCluster(cl)
+   }
+}
+
+# ### ISMIP3b - explore effect of senescence and fix 'bug' which increases biomass ----
 # 
 # rm(list=ls())
 #     
