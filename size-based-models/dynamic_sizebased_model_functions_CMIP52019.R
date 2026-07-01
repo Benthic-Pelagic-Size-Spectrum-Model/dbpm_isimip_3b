@@ -184,10 +184,10 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
     
     for (i in 1:(Neq)) {
       
-      if(W[i]=="NaN"|W[i]<0)
+      if(is.nan(W[i]) | W[i]<0)
       {
         #browser()
-        U[,i]<-"NaN"
+        U[,i]<-NA
         return(list(U=U[,],GG.u=GG.u[,],PM.u=PM.u[,],V=V[,],GG.v=GG.v[,],PM.v=PM.v[,],Y.u=Y.u[,],Y.v=Y.v[,],W=W[], params=params))	
       }
       
@@ -352,6 +352,10 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
         
         
         W[i+1]=W[i] + dW*delta_t        #biomass density of detritus g.m-2
+        # guard: an explicit Euler overshoot (coarse timestep) can drive W
+        # negative, and a non-finite rate can make it NaN; detritus is a
+        # non-negative pool, so clamp instead of propagating/bailing out.
+        if(!is.finite(W[i+1]) || W[i+1]<0) W[i+1]=0
         
       }
       
