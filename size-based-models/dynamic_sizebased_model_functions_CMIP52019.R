@@ -92,12 +92,12 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
     
     #predators
     #death.u<-function(u,A,expax,mphi){return(pref.pel*A*expax*(convolution.f(mphi,u)))}
-    death.u<-function(u,A,expax,mphi){return((pref.pel*A*expax)*(u*dx)%*%(mphi))}         #use faster matrix method instead of convolution loop function
+    death.u<-function(u,A,expax,mphi){return((pref.pel*A*expax)*(u*dx*log(10))%*%(mphi))}         #use faster matrix method instead of convolution loop function
     #growth.u<-function(K0,K1,A,expax,gphi,u,v){return((pref.pel*K0*A*expax*(convolution.f(gphi,u)))+ (pref.ben*K1*A*expax*(convolution.f(gphi,v))))}
-    growth.u<-function(K0,K1,A,expax,gphi,u,v){return((pref.pel*K0*A*expax)*(u*dx)%*%(gphi)+ (pref.ben*K1*A*expax)*(v*dx)%*%(gphi))}
+    growth.u<-function(K0,K1,A,expax,gphi,u,v){return((pref.pel*K0*A*expax)*(u*dx*log(10))%*%(gphi)+ (pref.ben*K1*A*expax)*(v*dx*log(10))%*%(gphi))}
     #detritivores
     #death.v<-function(u,A,expax,mphi){return((pref.ben)*A*expax*(convolution.f(mphi,u)))}
-    death.v<-function(u,A,expax,mphi){return((pref.ben*A*expax)*(u*dx)%*%(mphi))}
+    death.v<-function(u,A,expax,mphi){return((pref.ben*A*expax)*(u*dx*log(10))%*%(mphi))}
     growth.v<-function(K1,A,w){return((1/10^x)*(K1*A*10^(x*0.75)*w))}
     
     #detritus output (g.m-3.yr-1)
@@ -231,9 +231,9 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
       
       # feeding rates
       
-      f.pel<-pel.Tempeffect[i]*as.vector(((A.u*10^(x*alpha.u)*pref.pel)*(U[,i]*dx)%*%(gphi))/(1+handling*(A.u*10^(x*alpha.u)*pref.pel)*(U[,i]*dx)%*%(gphi))) # yr-1
+      f.pel<-pel.Tempeffect[i]*as.vector(((A.u*10^(x*alpha.u)*pref.pel)*(U[,i]*dx*log(10))%*%(gphi))/(1+handling*(A.u*10^(x*alpha.u)*pref.pel)*(U[,i]*dx*log(10))%*%(gphi))) # yr-1
       
-      f.ben<-pel.Tempeffect[i]*as.vector(((A.u*10^(x*alpha.u)*pref.ben)*(V[,i]*dx)%*%(gphi))/(1+handling*(A.u*10^(x*alpha.u)*pref.ben)*(V[,i]*dx)%*%(gphi))) # yr-1
+      f.ben<-pel.Tempeffect[i]*as.vector(((A.u*10^(x*alpha.u)*pref.ben)*(V[,i]*dx*log(10))%*%(gphi))/(1+handling*(A.u*10^(x*alpha.u)*pref.ben)*(V[,i]*dx*log(10))%*%(gphi))) # yr-1
       
       f.det<-ben.Tempeffect[i]*((1/10^x)*A.v*10^(x*alpha.v)*W[i])/(1+handling*(1/10^x)*A.v*10^(x*alpha.v)*W[i]) # yr-1 
       
@@ -248,9 +248,9 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
       
       #Satiation level of predator for pelagic prey
       
-      sat.pel<-ifelse(f.pel>0,f.pel/((A.u*10^(x*alpha.u)*pref.pel)*(U[,i]*dx)%*%(gphi)),0)
+      sat.pel<-ifelse(f.pel>0,f.pel/((A.u*10^(x*alpha.u)*pref.pel)*(U[,i]*dx*log(10))%*%(gphi)),0)
       
-      PM.u[,i]<-as.vector((pref.pel*A.u*expax)*(U[,i]*sat.pel*dx)%*%(mphi))  #yr-1 
+      PM.u[,i]<-as.vector((pref.pel*A.u*expax)*(U[,i]*sat.pel*dx*log(10))%*%(mphi))  #yr-1 
       
       #PM.u[,i]<-as.vector((1-f.pel)*(A.u*10^(x*alpha.u)*pref.pel)*(U[,i]*dx)%*%(mphi))  #yr-1 
       
@@ -266,9 +266,9 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
       # Benthos death integral
       #Satiation level of predator for benthic prey  
       
-      sat.ben<-ifelse(f.ben>0,f.ben/((A.u*10^(x*alpha.v)*pref.ben)*(V[,i]*dx)%*%(gphi)),0)
+      sat.ben<-ifelse(f.ben>0,f.ben/((A.u*10^(x*alpha.v)*pref.ben)*(V[,i]*dx*log(10))%*%(gphi)),0)
       
-      PM.v[,i]<-ifelse(sat.ben>0,as.vector((pref.ben*A.u*expax)*(U[,i]*sat.ben*dx)%*%(mphi)),0)  #yr-1
+      PM.v[,i]<-ifelse(sat.ben>0,as.vector((pref.ben*A.u*expax)*(U[,i]*sat.ben*dx*log(10))%*%(mphi)),0)  #yr-1
       
       #PM.v[,i]<-as.vector((1-f.ben)*(A.u*10^(x*alpha.u)*pref.ben)*(U[,i]*dx)%*%(mphi))  #yr-1
       
@@ -389,7 +389,7 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
       # if (repro.on==0)  U[ref,i+1]<-0.1*u.init.f(x,ui0,r.plank)[ref]       
       # reproduction from energy allocation
       
-      if (repro.on==1)  U[ref,i+1]<-U[ref,i]+ (sum(R.u[(ref+1):Nx,i]*10^x[(ref+1):Nx]*U[(ref+1):Nx,i]*dx)*delta_t)/(dx*10^x[ref]) - (delta_t/dx)*(1/log(10))*(GG.u[ref,i])*U[ref,i] -delta_t*Z.u[ref,i]*U[ref,i]
+      if (repro.on==1)  U[ref,i+1]<-U[ref,i]+ (log(10)*sum(R.u[(ref+1):Nx,i]*10^x[(ref+1):Nx]*U[(ref+1):Nx,i]*dx)*delta_t)/(dx*10^x[ref]) - (delta_t/dx)*(1/log(10))*(GG.u[ref,i])*U[ref,i] -delta_t*Z.u[ref,i]*U[ref,i]
       
       #main loop calculation
       
@@ -425,7 +425,7 @@ sizemodel<-function(params,ERSEM.det.input=F,U_mat,V_mat,W_mat,temp.effect=T,eps
       # apply a very low of transfer effiency 1%* total biomass of detritus divided by minimum size
       # if (repro.on==0)  V[ref.det,i+1]<-(0.01*W[i+1])/(10^x[ref]) 
       
-      if (repro.on==1)  V[ref.det,i+1]<-V[ref.det,i]+ sum(R.v[(ref.det+1):Nx,i]*10^x[(ref.det+1):Nx]*V[(ref.det+1):Nx,i]*dx)*delta_t/(dx*10^x[ref.det]) - (delta_t/dx)*(1/log(10))*(GG.v[ref.det,i])*V[ref.det,i] -delta_t*Z.v[ref.det,i]*V[ref.det,i]
+      if (repro.on==1)  V[ref.det,i+1]<-V[ref.det,i]+ log(10)*sum(R.v[(ref.det+1):Nx,i]*10^x[(ref.det+1):Nx]*V[(ref.det+1):Nx,i]*dx)*delta_t/(dx*10^x[ref.det]) - (delta_t/dx)*(1/log(10))*(GG.v[ref.det,i])*V[ref.det,i] -delta_t*Z.v[ref.det,i]*V[ref.det,i]
       
       
       #loop calculation
